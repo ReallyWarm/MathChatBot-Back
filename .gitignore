@@ -1,0 +1,4 @@
+node_modules/
+supabase/migrations/backup/
+supabase/.temp/
+.env
