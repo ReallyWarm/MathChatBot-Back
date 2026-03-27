@@ -2648,7 +2648,7 @@ ALTER FUNCTION "public"."search_course"("p_query" "text", "p_difficulty" "public
 
 CREATE OR REPLACE FUNCTION "public"."sync_updated_email"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
+    SET "search_path" TO 'public', 'extensions'
     AS $$
 begin
   if (new.email is distinct from old.email) or (new.email_confirmed_at is distinct from old.email_confirmed_at) then
@@ -2886,6 +2886,7 @@ ALTER FUNCTION "util"."invoke_edge_function"("name" "text", "auth_header" "text"
 
 CREATE OR REPLACE FUNCTION "util"."project_url"() RETURNS "text"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 declare
   secret_value text;
@@ -2905,6 +2906,7 @@ ALTER FUNCTION "util"."project_url"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "util"."retry_embedding_jobs"("batch_size" integer DEFAULT 5, "timeout_milliseconds" integer DEFAULT ((5 * 60) * 1000)) RETURNS "void"
     LANGUAGE "plpgsql"
+    SET "search_path" TO ''
     AS $$
 declare
   job record;
@@ -2943,6 +2945,7 @@ ALTER FUNCTION "util"."retry_embedding_jobs"("batch_size" integer, "timeout_mill
 
 CREATE OR REPLACE FUNCTION "vector"."complete_embedding_job"("job_id" bigint) RETURNS "void"
     LANGUAGE "sql"
+    SET "search_path" TO ''
     AS $$
   select pgmq.delete('embedding_jobs', job_id);
 $$;
@@ -2951,21 +2954,10 @@ $$;
 ALTER FUNCTION "vector"."complete_embedding_job"("job_id" bigint) OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "vector"."fail_embedding_job"("p_job_id" bigint, "p_doc_id" bigint, "p_file_url" "text", "p_operation" "text", "p_error" "text", "p_attempt" integer DEFAULT 1) RETURNS "void"
-    LANGUAGE "sql"
-    AS $$
-  insert into vector.embedding_job_logs
-    (job_id, doc_id, file_url, operation, status, error, attempt)
-  values
-    (p_job_id, p_doc_id, p_file_url, p_operation, 'failed', p_error, p_attempt);
-$$;
-
-
-ALTER FUNCTION "vector"."fail_embedding_job"("p_job_id" bigint, "p_doc_id" bigint, "p_file_url" "text", "p_operation" "text", "p_error" "text", "p_attempt" integer) OWNER TO "postgres";
-
 
 CREATE OR REPLACE FUNCTION "vector"."fail_embedding_job"("p_job_id" bigint, "p_doc_id" "uuid", "p_file_url" "text", "p_operation" "text", "p_error" "text", "p_attempt" integer DEFAULT 1) RETURNS "void"
     LANGUAGE "sql"
+    SET "search_path" TO ''
     AS $$
   insert into vector.embedding_job_logs
     (job_id, doc_id, file_url, operation, status, error, attempt)
@@ -2979,6 +2971,7 @@ ALTER FUNCTION "vector"."fail_embedding_job"("p_job_id" bigint, "p_doc_id" "uuid
 
 CREATE OR REPLACE FUNCTION "vector"."set_chunk_data"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'vector'
     AS $$BEGIN
     IF NEW.metadata IS NOT NULL THEN
         IF NEW.metadata ? 'doc_id' THEN
