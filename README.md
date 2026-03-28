@@ -23,8 +23,8 @@ This is the backend for Math Teaching Chatbot System. The full project is split 
 4\. Clone the repository
 
 ```terminal
-git clone https://github.com/you/my-supabase-project.git
-cd my-supabase-project
+git clone https://github.com/ReallyWarm/MathChatBot-Back.git
+cd MathChatBot-Back
 ```
 
 Install the Supabase CLI module
@@ -70,7 +70,7 @@ supabase db push
 supabase functions deploy --no-verify-jwt
 ```
 
-## 👥 Contributors
+## Contributors
 
 - [@Apec](https://github.com/Rezzpect)
 - [@K_firm1208](https://github.com/Kfirm1208)
