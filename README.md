@@ -10,6 +10,13 @@ This is the backend for Math Teaching Chatbot System. The full project is split 
 
 ## Installation
 
+### Requirements
+
+- [Node.js](https://nodejs.org/) v20 or later
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or compatible runtime)
+
+> See also: [Supabase CLI Guide](https://supabase.com/docs/guides/local-development)
+
 1\. Create a new Supabase project on [supabase.com](https://supabase.com)
 
 2\. Set up your Publishable API key and Secret API key
@@ -42,32 +49,33 @@ cp .env.example .env
 6\. Connect the Supabase CLI to your Supabase account by logging in with your browser
 
 ```terminal
-supabase login
+npx supabase login
 ```
 
 7\. Link your remote Supabase project using the Project ID
+
 Get your Project ID from (Supabase Dashboard -> Settings -> General)
 
 ```terminal
-supabase link --project-ref <your-project-id>
+npx supabase link --project-ref <your-project-id>
 ```
 
 8\. Apply the configurations to your Supabase project
 
 ```terminal
-supabase config push
+npx supabase config push
 ```
 
 9\. Run all Database migrations (creates tables, functions, policies, RLS)
 
 ```terminal
-supabase db push
+npx supabase db push
 ```
 
 10\. Deploy all Edge functions
 
 ```terminal
-supabase functions deploy --no-verify-jwt
+npx supabase functions deploy --no-verify-jwt
 ```
 
 ## Contributors
