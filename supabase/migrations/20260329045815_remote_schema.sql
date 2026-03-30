@@ -2059,7 +2059,7 @@ end;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.get_student_study_plan_list()
+CREATE OR REPLACE FUNCTION public.get_student_study_plan_list(status_timezone text default 'Asia/Bangkok')
  RETURNS TABLE(course_id bigint, course_name character varying, topic_id bigint, topic_name character varying, start_date timestamp with time zone, end_date timestamp with time zone, progress jsonb)
  LANGUAGE sql
  STABLE
@@ -2070,10 +2070,10 @@ AS $function$
     c.course_name, 
     sp.topic_id,
     t.topic_name,
-    (date_trunc('day', e.enroll_date) 
+    (date_trunc('day', e.enroll_date at time zone status_timezone) 
     + (sp.start_day - 1) * interval '1 day') 
     as start_date,
-    (date_trunc('day', e.enroll_date) 
+    (date_trunc('day', e.enroll_date at time zone status_timezone) 
     + (sp.start_day + sp.day_todo - 1) * interval '1 day') 
     as end_date,
     (
@@ -2088,6 +2088,7 @@ AS $function$
       left join student_answer sa
         on q.question_id = sa.question_id
       where q.topic_id = sp.topic_id
+        and q.is_published = true
     ) as progress
   from study_plan sp
   left join course c
@@ -2333,7 +2334,7 @@ AS $function$
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.get_user_profile(p_user_id uuid)
+CREATE OR REPLACE FUNCTION public.get_user_profile(p_user_id uuid, status_timezone text default 'Asia/Bangkok')
  RETURNS TABLE(user_id uuid, first_name character varying, last_name character varying, email character varying, role_name character varying, profile_picture text, created_date timestamp with time zone, updated_date timestamp with time zone, week_status jsonb)
  LANGUAGE sql
  STABLE
@@ -2359,20 +2360,22 @@ AS $function$
       order by d.day
       )
       from generate_series(
-        date_trunc('week', current_date),
-        date_trunc('week', current_date) + interval '6 days',
+        date_trunc('week', current_date at time zone status_timezone),
+        date_trunc('week', current_date at time zone status_timezone) + interval '6 days',
         interval '1 day'
       ) as d(day)
       left join (
         select
-          date_trunc('day', sa.complete_date) as day,
+          date_trunc('day', sa.complete_date at time zone status_timezone) as day,
           count(*) as cnt
         from student_answer sa
         where sa.user_id = p_user_id
           and sa.is_completed = TRUE
-          and sa.complete_date >= date_trunc('week', current_date)
-          and sa.complete_date < date_trunc('week', current_date) + interval '7 days'
-        group by date_trunc('day', sa.complete_date)
+          and sa.complete_date at time zone status_timezone >= 
+            date_trunc('week', current_date at time zone status_timezone)
+          and sa.complete_date at time zone status_timezone < 
+            date_trunc('week', current_date at time zone status_timezone) + interval '7 days'
+        group by date_trunc('day', sa.complete_date at time zone status_timezone)
       ) daily on daily.day = d.day
     ) 
     else null
@@ -2858,6 +2861,7 @@ CREATE OR REPLACE FUNCTION util.project_url()
  RETURNS text
  LANGUAGE plpgsql
  SECURITY DEFINER
+ SET search_path = ''
 AS $function$
 declare
   secret_value text;
@@ -2875,6 +2879,7 @@ $function$
 CREATE OR REPLACE FUNCTION util.retry_embedding_jobs(batch_size integer DEFAULT 5, timeout_milliseconds integer DEFAULT ((5 * 60) * 1000))
  RETURNS void
  LANGUAGE plpgsql
+ SET search_path = ''
 AS $function$
 declare
   job record;
@@ -2911,6 +2916,7 @@ $function$
 CREATE OR REPLACE FUNCTION vector.complete_embedding_job(job_id bigint)
  RETURNS void
  LANGUAGE sql
+ SET search_path = ''
 AS $function$
   select pgmq.delete('embedding_jobs', job_id);
 $function$
@@ -2919,6 +2925,7 @@ $function$
 CREATE OR REPLACE FUNCTION vector.fail_embedding_job(p_job_id bigint, p_doc_id uuid, p_file_url text, p_operation text, p_error text, p_attempt integer DEFAULT 1)
  RETURNS void
  LANGUAGE sql
+ SET search_path = ''
 AS $function$
   insert into vector.embedding_job_logs
     (job_id, doc_id, file_url, operation, status, error, attempt)
@@ -2930,6 +2937,7 @@ $function$
 CREATE OR REPLACE FUNCTION vector.set_chunk_data()
  RETURNS trigger
  LANGUAGE plpgsql
+ SET search_path = 'vector'
 AS $function$BEGIN
     IF NEW.metadata IS NOT NULL THEN
         IF NEW.metadata ? 'doc_id' THEN
