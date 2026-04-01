@@ -2179,6 +2179,7 @@ AS $function$
   left join topic t
     on sp.topic_id = t.topic_id
   where is_teacher()
+    and sp.course_id = p_course_id
   order by sp.start_day asc
 $function$
 ;
@@ -2308,7 +2309,10 @@ begin
         from topic t
         left join question q
           on q.topic_id = t.topic_id
+        left join public.course c
+          on c.course_id = t.course_id
         where t.course_id = p_course_id
+          and (q.is_published  = true or (c.created_by_uid = auth.uid()))
         group by t.topic_id, t.topic_name, t.topic_description
         order by t.topic_id
         limit p_page_size
