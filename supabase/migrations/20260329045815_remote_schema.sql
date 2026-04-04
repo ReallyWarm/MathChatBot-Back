@@ -2761,7 +2761,6 @@ begin
     set 
       title = file_name,
       course_id = course_id,
-      updated_date = now()
     where doc_id = NEW.id;
 
     -- If no Document exists
