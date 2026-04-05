@@ -78,19 +78,19 @@ npx supabase db push
 npx supabase functions deploy --no-verify-jwt
 ```
 
-12\. Set Edge function secrets
+11\. Set Edge function secrets
 
 ```terminal
 npx supabase secrets set
 ```
 
-13\. Create Storage Bucket
+12\. Create Storage Bucket
 
 ```terminal
 npx supabase seed buckets --linked
 ```
 
-14\. Optional. You can run SQL statements in `seed.sql` to register scheduled cron jobs for the system (run in the SQL Editor in Supabase Dashboard)
+(Optional) You can run SQL statements in `seed.sql` to register scheduled cron jobs for the system (run in the SQL Editor in Supabase Dashboard)
 
 ## Contributors
 
